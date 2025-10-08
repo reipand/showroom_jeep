@@ -1,8 +1,9 @@
-version: '3.8'
 services:
   web:
-    # Menggunakan image resmi PHP dengan Apache
-    image: php:8.2-apache 
+    # Menggunakan custom image yang sudah di-build
+    build:
+      context: .
+      dockerfile: .Dockerfile
     container_name: php-webserver
     restart: unless-stopped
     ports:
@@ -11,10 +12,15 @@ services:
     volumes:
       # Mount folder src/ di host ke direktori root dokumen Apache di container
       - ./src:/var/www/html
+      # Mount database init script
+      - ./jeep_db.sql:/docker-entrypoint-initdb.d/jeep_db.sql
       
-    # PENTING: Menggunakan UID/GID host untuk mengatasi masalah izin (Forbidden 403)
-    # GANTI "1000:1000" dengan User ID dan Group ID Anda yang sebenarnya
-    user: "1000:1000"
+    # Environment variables untuk koneksi database
+    environment:
+      - DB_HOST=db
+      - DB_USER=jeep_user
+      - DB_PASS=bcst2526
+      - DB_NAME=jeep_db
     
     # Ketergantungan pada layanan database
     depends_on:
@@ -40,6 +46,8 @@ services:
     volumes:
       # Penyimpanan data persisten
       - db_data:/var/lib/mysql
+      # Mount database initialization script
+      - ./jeep_db.sql:/docker-entrypoint-initdb.d/jeep_db.sql
 
   # 🚨 PERBAIKAN: LAYANAN PHPMYADMIN DIMASUKKAN DI BAWAH 'services:'
   phpmyadmin:

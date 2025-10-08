@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - reisan_backend # Trigger saat ada push ke branch reisan_backend 
+  pull_request:
+    branches:
+      - reisan_backend
 
 # 🚨 DEFINISIKAN VARIABEL DI LEVEL JOB
 env:
   DOCKER_IMAGE_NAME: reipand/showroom_jeep # Ganti dengan format Docker Hub Anda: username/repo-name
   CONTAINER_NAME: php-webserver
   DEPLOY_PORT: 8080 # Port yang digunakan di dalam container
+  APP_ENV: production
 
 jobs:
   build-and-deploy:
@@ -36,11 +40,16 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          dockerfile: .Dockerfile
           push: true
           # Gunakan nama image dari ENV dan tag dengan nama branch saat ini
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref_name }} 
-          # Tambahkan tag spesifik commit (github.sha) sebagai tag kedua
-          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          tags: |
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref_name }}
+            ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.DOCKER_IMAGE_NAME }}:latest
+          # Build arguments for production
+          build-args: |
+            APP_ENV=${{ env.APP_ENV }}
 
       # 2. DEPLOY KE SERVER VIA SSH
       - name: Deploy to Server via SSH
@@ -62,11 +71,18 @@ jobs:
             docker stop ${{ env.CONTAINER_NAME }} || true
             docker rm ${{ env.CONTAINER_NAME }} || true
             
-            echo "Running new container..."
-            # Jalankan container baru dengan port 8080 di host (port default web)
+            echo "Running new container with production environment..."
+            # Jalankan container baru dengan environment variables untuk production
             docker run -d \
               -p 8080:80 \
               --name ${{ env.CONTAINER_NAME }} \
+              --restart unless-stopped \
+              -e APP_ENV=${{ env.APP_ENV }} \
+              -e DB_HOST=db \
+              -e DB_USER=jeep_user \
+              -e DB_PASS=bcst2526 \
+              -e DB_NAME=jeep_db \
               $IMAGE_TAG
             
             echo "Deployment complete."
+            echo "Application is now running at http://your-server:8080"

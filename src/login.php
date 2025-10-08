@@ -15,7 +15,7 @@ if ($_POST) {
         $error_message = "Email dan password harus diisi!";
     } else {
         // Cek user di database
-        $query = "SELECT id, full_name, email, password FROM users WHERE email = ?";
+        $query = "SELECT id, full_name, email, password_hash FROM users WHERE email = ?";
         $stmt = mysqli_prepare($conn, $query);
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
@@ -25,7 +25,7 @@ if ($_POST) {
             $user = mysqli_fetch_assoc($result);
             
             // Verifikasi password
-            if (password_verify($password, $user['password'])) {
+            if (password_verify($password, $user['password_hash'])) {
                 // Set session
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['full_name'];
