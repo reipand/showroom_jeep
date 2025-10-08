@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'koneksi.php';
+include 'recaptcha.php';
 
 $error_message = '';
 
@@ -8,11 +9,14 @@ $error_message = '';
 if ($_POST) {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
+    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
     $remember_me = isset($_POST['remember_me']) ? 1 : 0;
     
     // Validasi input
     if (empty($email) || empty($password)) {
         $error_message = "Email dan password harus diisi!";
+    } elseif (!verifyRecaptcha($recaptcha_response)) {
+        $error_message = "reCAPTCHA verification failed! Please complete the reCAPTCHA.";
     } else {
         // Cek user di database
         $query = "SELECT id, full_name, email, password_hash FROM users WHERE email = ?";
@@ -59,6 +63,8 @@ $_SESSION['captcha'] = $captcha_code;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Jeep ID</title>
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         * {
             margin: 0;
@@ -238,6 +244,18 @@ $_SESSION['captcha'] = $captcha_code;
             text-decoration: underline;
         }
 
+        /* reCAPTCHA styling */
+        .g-recaptcha {
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .g-recaptcha > div {
+            transform: scale(0.9);
+            transform-origin: 0 0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -287,6 +305,12 @@ $_SESSION['captcha'] = $captcha_code;
                     <div class="remember-me">
                         <input type="checkbox" id="remember_me" name="remember_me">
                         <label for="remember_me">Remember me</label>
+                    </div>
+                    
+                    <!-- Google reCAPTCHA v2 -->
+                    <div class="form-group">
+                        <label>Security Verification</label>
+                        <?php echo generateRecaptchaHTML('light', 'normal'); ?>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Continue</button>

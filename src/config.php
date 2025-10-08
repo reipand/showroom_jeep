@@ -47,6 +47,11 @@ $config = [
         'httponly' => true,
         'samesite' => 'Strict'
     ],
+    'recaptcha' => [
+        'site_key' => getenv('RECAPTCHA_SITE_KEY') ?: '6LemAOMrAAAAAJuwYNQaO2ko92Q8xFG3DgUFlKij', // Test key
+        'secret_key' => getenv('RECAPTCHA_SECRET_KEY') ?: '6LemAOMrAAAAAOdVtlobP92EOTkvPLKUl19q7Dpi', // Test key
+        'enabled' => true
+    ],
     'upload' => [
         'max_size' => 5 * 1024 * 1024, // 5MB
         'allowed_types' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
