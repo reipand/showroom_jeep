@@ -3,7 +3,7 @@ session_start();
 include 'koneksi.php';
 
 // Fetch vehicles from database
-$vehicles_query = "SELECT * FROM vehicles ORDER BY id ASC";
+$vehicles_query = "SELECT * FROM vehicles WHERE is_active = 1 ORDER BY id ASC";
 $vehicles_result = mysqli_query($conn, $vehicles_query);
 $vehicles = [];
 if ($vehicles_result) {
@@ -489,37 +489,26 @@ if ($vehicles_result) {
             <div class="row" id="vehicles-container">
                 <?php if (!empty($vehicles)): ?>
                     <?php foreach ($vehicles as $vehicle): ?>
-                        <div class="col-lg-4 col-md-6 vehicle-item" data-category="<?php echo htmlspecialchars($vehicle['category'] ?? 'all'); ?>">
+                        <div class="col-lg-4 col-md-6 vehicle-item" data-category="all">
                             <div class="vehicle-card">
                                 <div class="vehicle-image">
-                                    <?php if (!empty($vehicle['image_url'])): ?>
-                                        <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>">
+                                    <?php if (!empty($vehicle['image_file'])): ?>
+                                        <img src="assets/images/<?php echo htmlspecialchars($vehicle['image_file']); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>">
                                     <?php else: ?>
                                         <div class="loading">
                                             <div class="spinner"></div>
-                                        </div>
-                                    <?php endif; ?>
-                                    
-                                    <?php if ($vehicle['is_hybrid']): ?>
-                                        <div class="vehicle-badge">
-                                            <i class="fas fa-leaf"></i> Hybrid
                                         </div>
                                     <?php endif; ?>
                                 </div>
                                 
                                 <div class="vehicle-info">
                                     <h3 class="vehicle-name"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
-                                    <p class="vehicle-price">MSRP Starting at<br><?php echo htmlspecialchars($vehicle['price']); ?></p>
+                                    <p class="vehicle-price">MSRP Starting at<br>Rp. <?php echo number_format($vehicle['price'], 0, ',', '.'); ?></p>
                                     
                                     <div class="vehicle-features">
-                                        <?php if ($vehicle['is_hybrid']): ?>
-                                            <span class="feature-tag">Hybrid</span>
-                                        <?php endif; ?>
-                                        <?php if ($vehicle['is_electric']): ?>
-                                            <span class="feature-tag">Electric</span>
-                                        <?php endif; ?>
-                                        <?php if ($vehicle['is_limited']): ?>
-                                            <span class="feature-tag">Limited Edition</span>
+                                        <span class="feature-tag">Stock: <?php echo $vehicle['stock']; ?></span>
+                                        <?php if ($vehicle['model_year']): ?>
+                                            <span class="feature-tag"><?php echo $vehicle['model_year']; ?></span>
                                         <?php endif; ?>
                                     </div>
                                     
