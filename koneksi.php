@@ -1,5 +1,4 @@
 <?php
-
 $host = "db";      
 $user = "jeep_user";           
 $pass = "bcst2526";               
