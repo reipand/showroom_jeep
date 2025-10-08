@@ -3,11 +3,21 @@ name: Deploy Web App via Docker
 on:
   push:
     branches:
-      - main # Trigger saat ada push ke branch main
+      - reisan_backend # Trigger saat ada push ke branch reisan_backend 
+
+# 🚨 DEFINISIKAN VARIABEL DI LEVEL JOB
+env:
+  DOCKER_IMAGE_NAME: reipand/showroom_jeep # Ganti dengan format Docker Hub Anda: username/repo-name
+  CONTAINER_NAME: php-webserver
+  DEPLOY_PORT: 8080 # Port yang digunakan di dalam container
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    
+    # 🚨 GUNAKAN ENVIRONMENT UNTUK KEAMANAN SECRETS
+    # environment: reisan-live # Un-comment baris ini setelah Anda membuat Environment di GitHub
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,14 +30,19 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
-
+          
+      # 1. BUILD DAN PUSH IMAGE
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
-          tags: myapp/webserver:${{ github.sha }}
+          # Gunakan nama image dari ENV dan tag dengan nama branch saat ini
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref_name }} 
+          # Tambahkan tag spesifik commit (github.sha) sebagai tag kedua
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
 
+      # 2. DEPLOY KE SERVER VIA SSH
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
         with:
@@ -35,10 +50,23 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            # Tentukan tag yang akan digunakan (menggunakan nama branch)
+            IMAGE_TAG=${{ env.DOCKER_IMAGE_NAME }}:${{ github.ref_name }}
+            
+            echo "Pulling image ${IMAGE_TAG}..."
             # Pull image terbaru dari Docker Hub
-            docker pull myapp/webserver:${{ github.sha }}
-            # Hentikan dan hapus container lama
-            docker stop php-webserver || true
-            docker rm php-webserver || true
-            # Jalankan container baru
-            docker run -d -p 80:80 --name php-webserver myapp/webserver:${{ github.sha }}
+            docker pull $IMAGE_TAG
+            
+            echo "Stopping and removing old container ${CONTAINER_NAME}..."
+            # Hentikan dan hapus container lama. || true agar script tidak berhenti jika container tidak ada.
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+            
+            echo "Running new container..."
+            # Jalankan container baru dengan port 8080 di host (port default web)
+            docker run -d \
+              -p 8080:80 \
+              --name ${{ env.CONTAINER_NAME }} \
+              $IMAGE_TAG
+            
+            echo "Deployment complete."
