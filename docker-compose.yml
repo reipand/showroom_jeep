@@ -1,13 +1,51 @@
 version: '3.8'
 services:
   web:
-  
+    # Menggunakan image resmi PHP dengan Apache
     image: php:8.2-apache 
     container_name: php-webserver
     restart: unless-stopped
     ports:
+      # Akses Website dari Host: http://localhost:8080
       - "8080:80"
     volumes:
+      # Mount folder src/ di host ke direktori root dokumen Apache di container
+      # Pastikan folder 'src' berisi file index.php atau index.html
       - ./src:/var/www/html
-    
+      
+    # 🚨 PENTING: Menggunakan UID/GID host untuk mengatasi masalah izin (Forbidden 403)
+    # GANTI "1000:1000" dengan User ID dan Group ID Anda yang sebenarnya
     user: "1000:1000"
+    
+    # Ketergantungan pada layanan database
+    depends_on:
+      - db
+
+  db:
+    # Menggunakan MariaDB versi terbaru
+    image: mariadb:10.7
+    container_name: mariadb-server
+    restart: unless-stopped
+    
+    # 🚨 AKSES LUAR: Membuka port database ke host.
+    # Akses dari host: 3306 (untuk phpMyAdmin atau klien SQL lain di laptop Anda)
+    ports:
+      - "3307:3306"
+      
+    # Variabel lingkungan untuk mengkonfigurasi database
+    environment:
+      # GANTI 'jeep_db' dengan nama database Anda
+      MYSQL_DATABASE: jeep_db
+      # GANTI 'jeep_user' dan 'bcst2526' dengan kredensial Anda
+      MYSQL_USER: jeep_user
+      MYSQL_PASSWORD: bcst2526
+      # # Password Root (Hanya untuk akses internal Docker/pertama kali)
+      # MYSQL_ROOT_PASSWORD: root_password_dev
+      
+    volumes:
+      # Penyimpanan data persisten agar data tidak hilang saat container mati
+      - db_data:/var/lib/mysql
+
+# Mendefinisikan volume untuk penyimpanan data database
+volumes:
+  db_data:
