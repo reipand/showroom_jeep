@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. GLTF Loader (Memuat Model 3D Jeep)
     const loader = new THREE.GLTFLoader();
     // PERHATIAN: Pastikan path ini benar!
-    const modelPath = 'assets/models/wrangler.glb'; 
+    const modelPath = 'assets/models/rubicon.glb'; 
     
     loader.load(
         modelPath, 

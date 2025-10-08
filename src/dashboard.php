@@ -34,7 +34,7 @@ if (isset($_GET['logout'])) {
 }
 
 // Data Dummy untuk Demo Three.js
-$featured_vehicle_model = 'assets/models/wrangler.glb'; 
+$featured_vehicle_model = 'assets/models/rubicon.glb'; 
 
 // Memanggil header (memuat Bootstrap CSS & Navbar)
 require_once 'includes/header.php';
