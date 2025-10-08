@@ -11,7 +11,7 @@ services:
       - "8080:80"
     volumes:
       # Mount folder src/ di host ke direktori root dokumen Apache di container
-      - ./src:/var/www/html
+      - /home/reip/Documents/showroom_web/src:/var/www/html
       # Mount database init script
       - ./jeep_db.sql:/docker-entrypoint-initdb.d/jeep_db.sql
       
