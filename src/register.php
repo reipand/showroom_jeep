@@ -42,7 +42,7 @@ if ($_POST) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             
             // Insert data ke database
-            $insert_query = "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)";
+            $insert_query = "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)";
             $stmt = mysqli_prepare($conn, $insert_query);
             mysqli_stmt_bind_param($stmt, "sss", $full_name, $email, $hashed_password);
             
