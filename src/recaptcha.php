@@ -1,13 +1,18 @@
 <?php
 /**
- * Google reCAPTCHA v2 Helper Functions
+ * Google reCAPTCHA Enterprise Helper Functions
  */
 
 // Load configuration
 $config = require 'config.php';
 
+// Load Google Cloud dependencies if available
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    require_once __DIR__ . '/../vendor/autoload.php';
+}
+
 /**
-     * Verify reCAPTCHA response (supports v2, v3, and Enterprise)
+ * Verify reCAPTCHA response (supports v2, v3, and Enterprise)
  * @param string $response The reCAPTCHA response from the form
  * @param string $action The action name (for v3/Enterprise)
  * @return bool True if valid, false otherwise
@@ -23,54 +28,103 @@ function verifyRecaptcha($response, $action = 'submit') {
         return false;
     }
     
-    $secretKey = $config['recaptcha']['secret_key'];
     $type = $config['recaptcha']['type'] ?? 'v2';
     
-    // Choose verification URL based on type
     if ($type === 'enterprise') {
-        $verifyURL = 'https://recaptchaenterprise.googleapis.com/v1/projects/' . 
-                     $config['recaptcha']['project_id'] . '/assessments?key=' . $secretKey;
-        
-        // Enterprise API uses different format
-        $data = [
-            'event' => [
-                'token' => $response,
-                'siteKey' => $config['recaptcha']['site_key'],
-                'expectedAction' => $action,
-                'userAgent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                'userIpAddress' => $_SERVER['REMOTE_ADDR'] ?? ''
-            ]
-        ];
-        
-        $options = [
-            'http' => [
-                'header' => "Content-Type: application/json\r\n",
-                'method' => 'POST',
-                'content' => json_encode($data)
-            ]
-        ];
+        return verifyRecaptchaEnterprise($response, $action);
     } else {
-        // Standard v2/v3 verification
-        $verifyURL = 'https://www.google.com/recaptcha/api/siteverify';
+        return verifyRecaptchaStandard($response, $action);
+    }
+}
+
+/**
+ * Verify reCAPTCHA using Google Cloud Enterprise API
+ * @param string $token The reCAPTCHA token
+ * @param string $action The action name
+ * @return bool True if valid, false otherwise
+ */
+function verifyRecaptchaEnterprise($token, $action) {
+    global $config;
+    
+    // Check if Google Cloud library is available
+    if (!class_exists('Google\Cloud\RecaptchaEnterprise\V1\Client\RecaptchaEnterpriseServiceClient')) {
+        // Fallback to simple HTTP request
+        return verifyRecaptchaEnterpriseHTTP($token, $action);
+    }
+    
+    try {
+        // Use Google Cloud Enterprise API
+        $client = new Google\Cloud\RecaptchaEnterprise\V1\Client\RecaptchaEnterpriseServiceClient();
+        $projectName = $client->projectName($config['recaptcha']['project_id']);
         
-        $data = [
-            'secret' => $secretKey,
-            'response' => $response,
-            'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
-        ];
+        // Set the properties of the event to be tracked
+        $event = (new Google\Cloud\RecaptchaEnterprise\V1\Event())
+            ->setSiteKey($config['recaptcha']['site_key'])
+            ->setToken($token);
         
-        if ($type === 'v3') {
-            $data['action'] = $action;
+        // Build the assessment request
+        $assessment = (new Google\Cloud\RecaptchaEnterprise\V1\Assessment())
+            ->setEvent($event);
+        
+        $request = (new Google\Cloud\RecaptchaEnterprise\V1\CreateAssessmentRequest())
+            ->setParent($projectName)
+            ->setAssessment($assessment);
+        
+        $response = $client->createAssessment($request);
+        
+        // Check if the token is valid
+        if ($response->getTokenProperties()->getValid() == false) {
+            error_log('reCAPTCHA Enterprise: Token invalid - ' . 
+                     Google\Cloud\RecaptchaEnterprise\V1\TokenProperties\InvalidReason::name(
+                         $response->getTokenProperties()->getInvalidReason()
+                     ));
+            return false;
         }
         
-        $options = [
-            'http' => [
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method' => 'POST',
-                'content' => http_build_query($data)
-            ]
-        ];
+        // Check if the expected action was executed
+        if ($response->getTokenProperties()->getAction() == $action) {
+            // Get the risk score
+            $score = $response->getRiskAnalysis()->getScore();
+            error_log('reCAPTCHA Enterprise: Score - ' . $score);
+            
+            // Consider score > 0.5 as valid (adjust threshold as needed)
+            return $score > 0.5;
+        } else {
+            error_log('reCAPTCHA Enterprise: Action mismatch - expected: ' . $action . 
+                     ', got: ' . $response->getTokenProperties()->getAction());
+            return false;
+        }
+        
+    } catch (Exception $e) {
+        error_log('reCAPTCHA Enterprise error: ' . $e->getMessage());
+        return false;
     }
+}
+
+/**
+ * Fallback HTTP verification for Enterprise (when Google Cloud library not available)
+ * @param string $token The reCAPTCHA token
+ * @param string $action The action name
+ * @return bool True if valid, false otherwise
+ */
+function verifyRecaptchaEnterpriseHTTP($token, $action) {
+    global $config;
+    
+    $verifyURL = 'https://www.google.com/recaptcha/api/siteverify';
+    
+    $data = [
+        'secret' => $config['recaptcha']['secret_key'],
+        'response' => $token,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ];
+    
+    $options = [
+        'http' => [
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
     
     $context = stream_context_create($options);
     $result = file_get_contents($verifyURL, false, $context);
@@ -80,16 +134,50 @@ function verifyRecaptcha($response, $action = 'submit') {
     }
     
     $resultJson = json_decode($result, true);
+    return isset($resultJson['success']) && $resultJson['success'] === true;
+}
+
+/**
+ * Verify reCAPTCHA using standard API (v2/v3)
+ * @param string $response The reCAPTCHA response
+ * @param string $action The action name
+ * @return bool True if valid, false otherwise
+ */
+function verifyRecaptchaStandard($response, $action) {
+    global $config;
     
-    if ($type === 'enterprise') {
-        // Enterprise returns different response format
-        return isset($resultJson['tokenProperties']['valid']) && 
-               $resultJson['tokenProperties']['valid'] === true &&
-               $resultJson['tokenProperties']['action'] === $action;
-    } else {
-        // Standard v2/v3 response
-        return isset($resultJson['success']) && $resultJson['success'] === true;
+    $secretKey = $config['recaptcha']['secret_key'];
+    $type = $config['recaptcha']['type'] ?? 'v2';
+    
+    $verifyURL = 'https://www.google.com/recaptcha/api/siteverify';
+    
+    $data = [
+        'secret' => $secretKey,
+        'response' => $response,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? ''
+    ];
+    
+    if ($type === 'v3') {
+        $data['action'] = $action;
     }
+    
+    $options = [
+        'http' => [
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $result = file_get_contents($verifyURL, false, $context);
+    
+    if ($result === false) {
+        return false;
+    }
+    
+    $resultJson = json_decode($result, true);
+    return isset($resultJson['success']) && $resultJson['success'] === true;
 }
 
 /**

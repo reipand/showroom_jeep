@@ -15,7 +15,7 @@ if ($_POST) {
     // Validasi input
     if (empty($email) || empty($password)) {
         $error_message = "Email dan password harus diisi!";
-    } elseif (!verifyRecaptcha($recaptcha_response)) {
+    } elseif (!verifyRecaptcha($recaptcha_response, 'LOGIN')) {
         $error_message = "reCAPTCHA verification failed! Please complete the reCAPTCHA.";
     } else {
         // Cek user di database
@@ -63,8 +63,8 @@ $_SESSION['captcha'] = $captcha_code;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Jeep ID</title>
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Google reCAPTCHA Enterprise -->
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4"></script>
     <style>
         * {
             margin: 0;
