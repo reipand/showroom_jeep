@@ -121,7 +121,7 @@ if ($vehicles_result) {
         .car-3d-container {
             position: relative;
             height: 500px;
-            background: linear-gradient(45deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(45deg, #2c3e50, #34495e);
             border-radius: 20px;
             overflow: hidden;
         }
@@ -130,6 +130,14 @@ if ($vehicles_result) {
             width: 100%;
             height: 100%;
             border-radius: 20px;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
         }
 
         .car-label {
@@ -391,12 +399,16 @@ if ($vehicles_result) {
             100% { transform: rotate(360deg); }
         }
     </style>
+    <!-- Three.js and loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="main.php">JEEP</a>
+            <a class="navbar-brand" href="index.php">JEEP</a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -405,7 +417,7 @@ if ($vehicles_result) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="main.php">Home</a>
+                        <a class="nav-link" href="index.php">Home</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="vehiclesDropdown" role="button" data-bs-toggle="dropdown">
@@ -469,6 +481,9 @@ if ($vehicles_result) {
                     <div class="car-3d-container">
                         <canvas id="car-canvas"></canvas>
                         <div class="car-label">Wrangler Unlimited</div>
+                        <div id="loading-spinner" class="loading">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -588,6 +603,8 @@ if ($vehicles_result) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     
     <script>
         // Vehicle filtering
@@ -612,41 +629,117 @@ if ($vehicles_result) {
         });
 
         // Three.js Car 3D Model
-        let scene, camera, renderer, car;
+        let scene, camera, renderer, car, controls;
         
         function initCar3D() {
             const canvas = document.getElementById('car-canvas');
+            const loadingSpinner = document.getElementById('loading-spinner');
             
-            // Scene
+            // Scene setup
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x2c3e50);
             
             // Camera
             camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-            camera.position.set(0, 2, 5);
+            camera.position.set(5, 2, 5);
             
             // Renderer
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                antialias: true,
+                alpha: true 
+            });
             renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
             directionalLight.position.set(10, 10, 5);
             directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
             scene.add(directionalLight);
+
+            // Add orbit controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 10;
+            controls.maxPolarAngle = Math.PI / 2;
+
+            // Load GLB model
+            const loader = new THREE.GLTFLoader();
+            loader.load(
+                'assets/models/rubicon.glb',
+                function (gltf) {
+                    loadingSpinner.style.display = 'none';
+                    const model = gltf.scene;
+                    
+                    // Scale and position the model
+                    model.scale.set(2, 2, 2);
+                    model.position.set(0, -1, 0);
+                    
+                    // Enable shadows for the model
+                    model.traverse(function (child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    scene.add(model);
+                    car = model;
+
+                    // Start animation loop
+                    animate();
+                },
+                function (xhr) {
+                    // Loading progress
+                    const percentComplete = (xhr.loaded / xhr.total * 100);
+                    console.log(percentComplete + '% loaded');
+                },
+                function (error) {
+                    console.error('Error loading model:', error);
+                    loadingSpinner.innerHTML = '<div class="spinner"></div><p>Error loading model</p>';
+                    
+                    // Fallback: create a simple car if model fails to load
+                    createFallbackCar();
+                }
+            );
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function createFallbackCar() {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            loadingSpinner.style.display = 'none';
             
-            // Create a simple car-like shape
-            const carGeometry = new THREE.BoxGeometry(3, 1, 1.5);
-            const carMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
-            car = new THREE.Mesh(carGeometry, carMaterial);
-            car.position.y = 0.5;
-            car.castShadow = true;
-            scene.add(car);
+            // Create a simple car-like shape as fallback
+            const carGroup = new THREE.Group();
+            
+            // Car body
+            const bodyGeometry = new THREE.BoxGeometry(3, 1, 1.5);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0.5;
+            body.castShadow = true;
+            carGroup.add(body);
+            
+            // Car roof
+            const roofGeometry = new THREE.BoxGeometry(2.5, 0.5, 1.3);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.set(0, 1.2, 0);
+            roof.castShadow = true;
+            carGroup.add(roof);
             
             // Add wheels
             const wheelGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
@@ -664,48 +757,119 @@ if ($vehicles_result) {
                 wheel.position.set(pos[0], pos[1], pos[2]);
                 wheel.rotation.z = Math.PI / 2;
                 wheel.castShadow = true;
-                scene.add(wheel);
+                carGroup.add(wheel);
             });
             
-            // Ground
-            const groundGeometry = new THREE.PlaneGeometry(20, 20);
-            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
+            scene.add(carGroup);
+            car = carGroup;
             
-            // Animation
-            function animate() {
-                requestAnimationFrame(animate);
-                
-                // Rotate car
+            // Start animation loop
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate car
+            if (car) {
                 car.rotation.y += 0.01;
-                
-                renderer.render(scene, camera);
             }
             
-            animate();
+            // Update controls
+            if (controls) {
+                controls.update();
+            }
             
-            // Handle resize
-            window.addEventListener('resize', () => {
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-            });
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const canvas = document.getElementById('car-canvas');
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 
         // Wrangler 360 View
+        let scene360, camera360, renderer360, car360, controls360;
+        
         function initWrangler360() {
             const canvas = document.getElementById('wrangler-360-canvas');
             
-            const scene360 = new THREE.Scene();
-            const camera360 = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-            const renderer360 = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            scene360 = new THREE.Scene();
+            camera360 = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            renderer360 = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
             
             renderer360.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer360.setPixelRatio(window.devicePixelRatio);
             scene360.background = new THREE.Color(0x2c3e50);
+            renderer360.shadowMap.enabled = true;
+            renderer360.shadowMap.type = THREE.PCFSoftShadowMap;
             
+            // Add lighting
+            const ambientLight360 = new THREE.AmbientLight(0xffffff, 0.6);
+            scene360.add(ambientLight360);
+            
+            const directionalLight360 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight360.position.set(10, 10, 5);
+            directionalLight360.castShadow = true;
+            directionalLight360.shadow.mapSize.width = 2048;
+            directionalLight360.shadow.mapSize.height = 2048;
+            scene360.add(directionalLight360);
+            
+            camera360.position.set(0, 2, 6);
+            
+            // Add orbit controls for 360 view
+            controls360 = new THREE.OrbitControls(camera360, renderer360.domElement);
+            controls360.enableDamping = true;
+            controls360.dampingFactor = 0.05;
+            controls360.enableZoom = true;
+            controls360.enablePan = false;
+            controls360.minDistance = 4;
+            controls360.maxDistance = 12;
+            controls360.maxPolarAngle = Math.PI / 2;
+            
+            // Load GLB model for 360 view
+            const loader360 = new THREE.GLTFLoader();
+            loader360.load(
+                'assets/models/rubicon.glb',
+                function (gltf) {
+                    const model360 = gltf.scene;
+                    
+                    // Scale and position the model
+                    model360.scale.set(2.5, 2.5, 2.5);
+                    model360.position.set(0, -1, 0);
+                    
+                    // Enable shadows for the model
+                    model360.traverse(function (child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    scene360.add(model360);
+                    car360 = model360;
+                    
+                    // Start animation loop
+                    animate360();
+                },
+                function (xhr) {
+                    const percentComplete = (xhr.loaded / xhr.total * 100);
+                    console.log('360 Model: ' + percentComplete + '% loaded');
+                },
+                function (error) {
+                    console.error('Error loading 360 model:', error);
+                    // Fallback: create a simple car for 360 view
+                    createFallbackCar360();
+                }
+            );
+            
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize360);
+        }
+
+        function createFallbackCar360() {
             // Create a more detailed car for 360 view
             const carGroup = new THREE.Group();
             
@@ -714,6 +878,7 @@ if ($vehicles_result) {
             const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x2c3e50 });
             const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
             body.position.y = 0.75;
+            body.castShadow = true;
             carGroup.add(body);
             
             // Car roof
@@ -721,53 +886,51 @@ if ($vehicles_result) {
             const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x34495e });
             const roof = new THREE.Mesh(roofGeometry, roofMaterial);
             roof.position.set(0, 1.5, 0);
+            roof.castShadow = true;
             carGroup.add(roof);
             
-            // Add lighting
-            const ambientLight360 = new THREE.AmbientLight(0x404040, 0.8);
-            scene360.add(ambientLight360);
+            // Add wheels
+            const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+            const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
             
-            const directionalLight360 = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight360.position.set(5, 5, 5);
-            scene360.add(directionalLight360);
+            const wheelPositions = [
+                [-1.5, 0.4, 1.2],
+                [1.5, 0.4, 1.2],
+                [-1.5, 0.4, -1.2],
+                [1.5, 0.4, -1.2]
+            ];
+            
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheel.position.set(pos[0], pos[1], pos[2]);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.castShadow = true;
+                carGroup.add(wheel);
+            });
             
             scene360.add(carGroup);
-            camera360.position.set(0, 2, 6);
+            car360 = carGroup;
             
-            // Mouse controls for 360 rotation
-            let mouseX = 0, mouseY = 0;
-            let isMouseDown = false;
+            // Start animation loop
+            animate360();
+        }
+        
+        function animate360() {
+            requestAnimationFrame(animate360);
             
-            canvas.addEventListener('mousedown', (e) => {
-                isMouseDown = true;
-            });
-            
-            canvas.addEventListener('mouseup', () => {
-                isMouseDown = false;
-            });
-            
-            canvas.addEventListener('mousemove', (e) => {
-                if (isMouseDown) {
-                    mouseX = (e.clientX / canvas.clientWidth) * 2 - 1;
-                    mouseY = -(e.clientY / canvas.clientHeight) * 2 + 1;
-                    
-                    carGroup.rotation.y = mouseX * Math.PI;
-                    carGroup.rotation.x = mouseY * Math.PI * 0.3;
-                }
-            });
-            
-            // Auto rotation
-            function animate360() {
-                requestAnimationFrame(animate360);
-                
-                if (!isMouseDown) {
-                    carGroup.rotation.y += 0.005;
-                }
-                
-                renderer360.render(scene360, camera360);
+            // Update controls
+            if (controls360) {
+                controls360.update();
             }
             
-            animate360();
+            renderer360.render(scene360, camera360);
+        }
+        
+        function onWindowResize360() {
+            const canvas = document.getElementById('wrangler-360-canvas');
+            camera360.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera360.updateProjectionMatrix();
+            renderer360.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 
         // Initialize when page loads
