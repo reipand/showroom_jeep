@@ -1,7 +1,6 @@
 <?php
 session_start();
 include 'koneksi.php';
-include 'recaptcha.php';
 
 $error_message = '';
 $success_message = '';
@@ -13,7 +12,6 @@ if ($_POST) {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $captcha = $_POST['captcha'];
-    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
     $remember_me = isset($_POST['remember_me']) ? 1 : 0;
     
     // Validasi input
@@ -29,8 +27,6 @@ if ($_POST) {
         $error_message = "Password dan konfirmasi password tidak sama!";
     } elseif ($captcha !== $_SESSION['captcha']) {
         $error_message = "Captcha tidak sesuai!";
-    } elseif (!verifyRecaptcha($recaptcha_response, 'REGISTER')) {
-        $error_message = "reCAPTCHA verification failed! Please complete the reCAPTCHA.";
     } else {
         // Cek apakah email sudah terdaftar
         $check_email = "SELECT id FROM users WHERE email = ?";
@@ -76,8 +72,6 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Jeep ID</title>
-    <!-- Google reCAPTCHA Enterprise -->
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4"></script>
     <style>
         * {
             margin: 0;
@@ -235,18 +229,6 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
             font-size: 16px;
         }
 
-        /* reCAPTCHA v2 styling */
-        .g-recaptcha {
-            margin: 15px 0;
-            display: flex;
-            justify-content: center;
-        }
-
-        .g-recaptcha > div {
-            transform: scale(0.9);
-            transform-origin: 0 0;
-        }
-
         .remember-me {
             display: flex;
             align-items: center;
@@ -394,12 +376,6 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
                         <div class="captcha-display" id="captcha-display"><?php echo $captcha_code; ?></div>
                         <input type="text" class="captcha-input" name="captcha" placeholder="Enter captcha" required>
                         <button type="button" class="captcha-refresh" onclick="refreshCaptcha()" title="Refresh Captcha">🔄</button>
-                    </div>
-                    
-                    <!-- Google reCAPTCHA v2 -->
-                    <div class="form-group">
-                        <label>Security Verification</label>
-                        <?php echo generateRecaptchaHTML('submit', 'light', 'normal'); ?>
                     </div>
                     
                     <div class="remember-me">

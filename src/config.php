@@ -47,13 +47,6 @@ $config = [
         'httponly' => true,
         'samesite' => 'Strict'
     ],
-    'recaptcha' => [
-        'site_key' => getenv('RECAPTCHA_SITE_KEY') ?: '6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4', // Enterprise key
-        'secret_key' => getenv('RECAPTCHA_SECRET_KEY') ?: '6LdNueIrAAAAADsck-GbReXrMMZAaod6hjYuTLMl', // Enterprise key
-        'enabled' => true,
-        'type' => 'enterprise',
-        'project_id' => getenv('RECAPTCHA_PROJECT_ID') ?: 'shaped-network-470412-q5'
-    ],
     'upload' => [
         'max_size' => 5 * 1024 * 1024, // 5MB
         'allowed_types' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
