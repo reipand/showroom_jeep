@@ -10,10 +10,9 @@ services:
       - "8080:80"
     volumes:
       # Mount folder src/ di host ke direktori root dokumen Apache di container
-      # Pastikan folder 'src' berisi file index.php atau index.html
       - ./src:/var/www/html
       
-    # 🚨 PENTING: Menggunakan UID/GID host untuk mengatasi masalah izin (Forbidden 403)
+    # PENTING: Menggunakan UID/GID host untuk mengatasi masalah izin (Forbidden 403)
     # GANTI "1000:1000" dengan User ID dan Group ID Anda yang sebenarnya
     user: "1000:1000"
     
@@ -27,24 +26,38 @@ services:
     container_name: mariadb-server
     restart: unless-stopped
     
-    # 🚨 AKSES LUAR: Membuka port database ke host.
-    # Akses dari host: 3306 (untuk phpMyAdmin atau klien SQL lain di laptop Anda)
+    # AKSES LUAR: Port host 3307 diarahkan ke Port 3306 di container.
     ports:
-      - "3307:3306"
+      - "3307:3306" 
       
     # Variabel lingkungan untuk mengkonfigurasi database
     environment:
-      # GANTI 'jeep_db' dengan nama database Anda
       MYSQL_DATABASE: jeep_db
-      # GANTI 'jeep_user' dan 'bcst2526' dengan kredensial Anda
       MYSQL_USER: jeep_user
       MYSQL_PASSWORD: bcst2526
-      # # Password Root (Hanya untuk akses internal Docker/pertama kali)
       MYSQL_ROOT_PASSWORD: bcst2526
       
     volumes:
-      # Penyimpanan data persisten agar data tidak hilang saat container mati
+      # Penyimpanan data persisten
       - db_data:/var/lib/mysql
+
+  # 🚨 PERBAIKAN: LAYANAN PHPMYADMIN DIMASUKKAN DI BAWAH 'services:'
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-dashboard
+    restart: always
+    ports:
+      # Akses dari host: http://localhost:8081
+      - "8081:80" 
+    environment:
+      # PMA_HOST harus menggunakan nama layanan (db) BUKAN port (3307)
+      PMA_HOST: db 
+      # PMA_PORT harus menggunakan port internal container DB (3306)
+      PMA_PORT: 3306 
+      # Gunakan password root yang sama dengan layanan db
+      MYSQL_ROOT_PASSWORD: bcst2526 
+    depends_on:
+      - db
 
 # Mendefinisikan volume untuk penyimpanan data database
 volumes:
