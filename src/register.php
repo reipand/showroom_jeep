@@ -29,7 +29,7 @@ if ($_POST) {
         $error_message = "Password dan konfirmasi password tidak sama!";
     } elseif ($captcha !== $_SESSION['captcha']) {
         $error_message = "Captcha tidak sesuai!";
-    } elseif (!verifyRecaptcha($recaptcha_response)) {
+    } elseif (!verifyRecaptcha($recaptcha_response, 'REGISTER')) {
         $error_message = "reCAPTCHA verification failed! Please complete the reCAPTCHA.";
     } else {
         // Cek apakah email sudah terdaftar
@@ -76,8 +76,8 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Jeep ID</title>
-    <!-- Google reCAPTCHA v2 -->
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- Google reCAPTCHA Enterprise -->
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4"></script>
     <style>
         * {
             margin: 0;
@@ -235,16 +235,11 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
             font-size: 16px;
         }
 
-        /* reCAPTCHA styling */
+        /* reCAPTCHA Enterprise styling */
         .g-recaptcha {
             margin: 15px 0;
             display: flex;
             justify-content: center;
-        }
-
-        .g-recaptcha > div {
-            transform: scale(0.9);
-            transform-origin: 0 0;
         }
 
         .remember-me {
@@ -396,10 +391,10 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
                         <button type="button" class="captcha-refresh" onclick="refreshCaptcha()" title="Refresh Captcha">🔄</button>
                     </div>
                     
-                    <!-- Google reCAPTCHA v2 -->
+                    <!-- Google reCAPTCHA Enterprise -->
                     <div class="form-group">
                         <label>Security Verification</label>
-                        <?php echo generateRecaptchaHTML('light', 'normal'); ?>
+                        <?php echo generateRecaptchaHTML('REGISTER'); ?>
                     </div>
                     
                     <div class="remember-me">
@@ -407,7 +402,7 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
                         <label for="remember_me">Remember me</label>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Create Account</button>
+                    <?php echo generateRecaptchaScript('REGISTER'); ?>
                 </form>
                 
                 <div class="login-link">
