@@ -15,7 +15,7 @@ if ($_POST) {
     // Validasi input
     if (empty($email) || empty($password)) {
         $error_message = "Email dan password harus diisi!";
-    } elseif (!verifyRecaptcha($recaptcha_response, 'LOGIN')) {
+    } elseif (!verifyRecaptcha($recaptcha_response)) {
         $error_message = "reCAPTCHA verification failed! Please complete the reCAPTCHA.";
     } else {
         // Cek user di database
@@ -63,8 +63,8 @@ $_SESSION['captcha'] = $captcha_code;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Jeep ID</title>
-    <!-- Google reCAPTCHA Enterprise -->
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4"></script>
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         * {
             margin: 0;
@@ -244,11 +244,16 @@ $_SESSION['captcha'] = $captcha_code;
             text-decoration: underline;
         }
 
-        /* reCAPTCHA Enterprise styling */
+        /* reCAPTCHA v2 styling */
         .g-recaptcha {
             margin: 15px 0;
             display: flex;
             justify-content: center;
+        }
+
+        .g-recaptcha > div {
+            transform: scale(0.9);
+            transform-origin: 0 0;
         }
 
         @media (max-width: 768px) {
@@ -302,13 +307,13 @@ $_SESSION['captcha'] = $captcha_code;
                         <label for="remember_me">Remember me</label>
                     </div>
                     
-                    <!-- Google reCAPTCHA Enterprise -->
+                    <!-- Google reCAPTCHA v2 -->
                     <div class="form-group">
                         <label>Security Verification</label>
-                        <?php echo generateRecaptchaHTML('LOGIN'); ?>
+                        <?php echo generateRecaptchaHTML('submit', 'light', 'normal'); ?>
                     </div>
                     
-                    <?php echo generateRecaptchaScript('LOGIN'); ?>
+                    <button type="submit" class="btn btn-primary">Continue</button>
                 </form>
                 
                 <button type="button" class="btn btn-secondary" onclick="window.location.href='register.php'">Create your account</button>

@@ -51,7 +51,7 @@ $config = [
         'site_key' => getenv('RECAPTCHA_SITE_KEY') ?: '6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4', // Enterprise key
         'secret_key' => getenv('RECAPTCHA_SECRET_KEY') ?: '6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4', // Enterprise key
         'enabled' => true,
-        'type' => 'enterprise', // v2, v3, or enterprise
+        'type' => 'v2', // Switch back to v2 for now
         'project_id' => getenv('RECAPTCHA_PROJECT_ID') ?: '6LdNueIrAAAAALRKnwvzFYSWJDZU64Q4dxYtVJP4'
     ],
     'upload' => [
