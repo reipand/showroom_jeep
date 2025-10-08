@@ -328,12 +328,12 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
 <body>
     <div class="container">
         <div class="left-section">
-            <img src="SHOWROOM/SHOWROOM/IC_MOBIL_LOGIN/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
+            <img src="assets/images/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
         </div>
         
         <div class="right-section">
             <div class="logo-section">
-                <img src="SHOWROOM/SHOWROOM/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
+                <img src="assets/images/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
                 </div>
             
             <div class="welcome-text">
