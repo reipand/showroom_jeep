@@ -1,7 +1,7 @@
 <?php
 $host = "localhost";      // Server database
-$user = "root";           // Username default XAMPP
-$pass = "";               // Password default (kosong)
+$user = "reip";           // Username default XAMPP
+$pass = "bcst2526";               // Password default (kosong)
 $db   = "jeep"; // Nama database kamu
 
 // Membuat koneksi
