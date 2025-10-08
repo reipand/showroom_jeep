@@ -40,7 +40,7 @@ services:
       MYSQL_USER: jeep_user
       MYSQL_PASSWORD: bcst2526
       # # Password Root (Hanya untuk akses internal Docker/pertama kali)
-      # MYSQL_ROOT_PASSWORD: root_password_dev
+      MYSQL_ROOT_PASSWORD: bcst2526
       
     volumes:
       # Penyimpanan data persisten agar data tidak hilang saat container mati
