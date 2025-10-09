@@ -104,7 +104,7 @@ require_once 'includes/header.php';
     <div class="card shadow-lg border-0 bg-secondary text-white rounded-4">
         <div class="card-body py-5">
             <h2 class="text-center mb-2 fw-bold">360° Showroom</h2>
-            <p class="text-center lead text-white-50">Interact with the <?= htmlspecialchars($featured_vehicle_model) ?> model below.</p>
+            <!-- <p class="text-center lead text-white-50">Interact with the <?= htmlspecialchars($featured_vehicle_model) ?> model below.</p> -->
             
             <div id="threejs-container" class="mt-4 shadow-xl rounded-3" style="width: 100%; height: 600px; background-color: #1a1a1a;">
                 <!-- Three.js Canvas akan dimuat di sini -->
