@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Insert admin user default (password: admin123)
-INSERT IGNORE INTO `users` (`full_name`, `email`, `phone_number`, `password`, `role`) VALUES
+INSERT IGNORE INTO `users` (`full_name`, `email`, `phone_number`, `password_hash`, `role`) VALUES
 ('Administrator', 'admin@jeep.com', '081234567890', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
 
 -- Insert sample vehicles
@@ -65,4 +65,16 @@ CREATE TABLE IF NOT EXISTS `user_likes` (
   KEY `idx_vehicle` (`vehicle_id`),
   CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_likes_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Tabel vehicle_images untuk multi-gambar per kendaraan
+CREATE TABLE IF NOT EXISTS `vehicle_images` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `vehicle_id` int(11) NOT NULL,
+  `image_file` varchar(255) NOT NULL,
+  `is_primary` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_vehicle_images_vehicle` (`vehicle_id`),
+  CONSTRAINT `fk_vehicle_images_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

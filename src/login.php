@@ -295,19 +295,19 @@ $_SESSION['captcha'] = $captcha_code;
 </head>
 <body>
 <a href="index.php" class="back-icon-link">
-        <img src="SHOWROOM/SHOWROOM/back_button_login.png" alt="Back" class="back-icon">
+        <img src="assets/images/back_button_login.png" alt="Back" class="back-icon">
     </a>
 
     <div class="container">
         <div class="left-section">
-        <img src="SHOWROOM/SHOWROOM/IC_MOBIL_LOGIN/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
+        <img src="assets/images/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
         </div>
 
         
         
         <div class="right-section">
             <div class="logo-section">
-                <img src="SHOWROOM/SHOWROOM/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
+                <img src="assets/images/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
             </div>
             
             <div class="welcome-text">

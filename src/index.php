@@ -430,7 +430,7 @@ if ($vehicles_result) {
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#shopping">Shopping</a>
+                        <a class="nav-link" href="shop.php">Shopping</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#blog">Blog</a>
@@ -441,11 +441,12 @@ if ($vehicles_result) {
                 </ul>
                 
                 <div class="d-flex">
-                    <a class="nav-link me-3" href="#search">
-                        <i class="fas fa-search"></i>
-                    </a>
+                    <form class="d-flex me-3" method="get" action="shop.php">
+                        <input name="q" class="form-control form-control-sm" type="search" placeholder="Search vehicles" aria-label="Search" style="min-width: 180px;">
+                        <button class="btn btn-sm btn-outline-secondary ms-2" type="submit"><i class="fas fa-search"></i></button>
+                    </form>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a class="nav-link" href="dashboard.php">
+                        <a class="nav-link" href="account.php">
                             <i class="fas fa-user-circle"></i>
                         </a>
                     <?php else: ?>
@@ -610,7 +611,9 @@ if ($vehicles_result) {
         // Vehicle filtering
         document.querySelectorAll('.vehicle-tab').forEach(tab => {
             tab.addEventListener('click', function() {
+                // Remove active class from all tabs
                 document.querySelectorAll('.vehicle-tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
                 this.classList.add('active');
                 
                 const filter = this.getAttribute('data-filter');
@@ -939,8 +942,7 @@ if ($vehicles_result) {
 
         // Vehicle view function
         function viewVehicle(vehicleId) {
-            // You can implement vehicle detail view here
-            alert('Viewing vehicle ID: ' + vehicleId);
+            window.location.href = 'vehicle_detail.php?id=' + encodeURIComponent(vehicleId);
         }
 
         // Smooth scrolling for navigation links
