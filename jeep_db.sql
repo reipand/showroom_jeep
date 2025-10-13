@@ -8,7 +8,7 @@ CREATE TABLE users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     phone_number VARCHAR(15),
-    password_hash VARCHAR(255) NOT NULL, -- Untuk menyimpan hash password
+    password VARCHAR(255) NOT NULL, -- Untuk menyimpan hash password
     role ENUM('pelanggan', 'sales', 'admin') NOT NULL DEFAULT 'pelanggan',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

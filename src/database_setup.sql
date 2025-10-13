@@ -66,15 +66,3 @@ CREATE TABLE IF NOT EXISTS `user_likes` (
   CONSTRAINT `fk_likes_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_likes_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Tabel vehicle_images untuk multi-gambar per kendaraan
-CREATE TABLE IF NOT EXISTS `vehicle_images` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vehicle_id` int(11) NOT NULL,
-  `image_file` varchar(255) NOT NULL,
-  `is_primary` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_vehicle_images_vehicle` (`vehicle_id`),
-  CONSTRAINT `fk_vehicle_images_vehicle` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
