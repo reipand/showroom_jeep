@@ -610,9 +610,7 @@ if ($vehicles_result) {
         // Vehicle filtering
         document.querySelectorAll('.vehicle-tab').forEach(tab => {
             tab.addEventListener('click', function() {
-                // Remove active class from all tabs
                 document.querySelectorAll('.vehicle-tab').forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
                 this.classList.add('active');
                 
                 const filter = this.getAttribute('data-filter');

@@ -15,7 +15,7 @@ if ($_POST) {
         $error_message = "Email dan password harus diisi!";
     } else {
         // Cek user di database
-        $query = "SELECT id, full_name, email, password_hash FROM users WHERE email = ?";
+        $query = "SELECT id, full_name, email, phone_number, password_hash, role FROM users WHERE email = ?";
         $stmt = mysqli_prepare($conn, $query);
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
@@ -30,14 +30,27 @@ if ($_POST) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['full_name'];
                 $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_phone'] = $user['phone_number'];
+                $_SESSION['user_role'] = $user['role'];
                 
                 // Set cookie jika remember me dicentang
                 if ($remember_me) {
                     setcookie('remember_user', $user['id'], time() + (86400 * 30), '/'); // 30 hari
                 }
                 
-                // Redirect ke dashboard atau halaman utama
-                header("Location: dashboard.php");
+                // Redirect berdasarkan role
+                switch ($user['role']) {
+                    case 'admin':
+                        header("Location: admin.php");
+                        break;
+                    case 'sales':
+                        header("Location: sales.php");
+                        break;
+                
+                    default:
+                        header("Location: index.php");
+                        break;
+                }
                 exit();
             } else {
                 $error_message = "Password salah!";
@@ -92,10 +105,9 @@ $_SESSION['captcha'] = $captcha_code;
         .jeep-image {
             width: 80%;
             max-width: 500px;
+            margin-left: 100px;
             height: auto;
-            border: 3px solid #000;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .right-section {
@@ -105,7 +117,7 @@ $_SESSION['captcha'] = $captcha_code;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px;
+            padding: 30px;
         }
 
         .logo-section {
@@ -213,6 +225,33 @@ $_SESSION['captcha'] = $captcha_code;
             background: #f5f5f5;
         }
 
+        .back-icon-link {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.back-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+.back-icon-link:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+}
+
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -238,7 +277,6 @@ $_SESSION['captcha'] = $captcha_code;
             text-decoration: underline;
         }
 
-
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -250,20 +288,26 @@ $_SESSION['captcha'] = $captcha_code;
             
             .right-section {
                 height: 60vh;
-                padding: 20px;
+                padding: 30px;
             }
         }
     </style>
 </head>
 <body>
+<a href="index.php" class="back-icon-link">
+        <img src="SHOWROOM/SHOWROOM/back_button_login.png" alt="Back" class="back-icon">
+    </a>
+
     <div class="container">
         <div class="left-section">
-        <img src="assets/images/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
+        <img src="SHOWROOM/SHOWROOM/IC_MOBIL_LOGIN/REGISTER.png" alt="Jeep Wrangler" class="jeep-image">
         </div>
+
+        
         
         <div class="right-section">
             <div class="logo-section">
-                <img src="assets/images/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
+                <img src="SHOWROOM/SHOWROOM/LOGO_KELOMPOK2.png" alt="Logo Kelompok2" style="max-width: 200px; height: auto; margin-bottom: 10px;">
             </div>
             
             <div class="welcome-text">
