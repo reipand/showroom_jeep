@@ -1,5 +1,5 @@
 <?php
-// Pastikan $user sudah tersedia dari dashboard.php
+// Pastikan $user sudah tersedia dari
 $full_name = isset($user['full_name']) ? htmlspecialchars($user['full_name']) : 'Guest';
 ?>
 <!DOCTYPE html>
@@ -23,7 +23,7 @@ $full_name = isset($user['full_name']) ? htmlspecialchars($user['full_name']) : 
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="dashboard.php">JEEP Dashboard</a>
+        <a class="navbar-brand" href="account.php">JEEP Dashboard</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item">
