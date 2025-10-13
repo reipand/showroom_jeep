@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 session_start();
 include 'koneksi.php';
 
@@ -287,4 +287,4 @@ if (isset($_GET['logout'])) {
         </div>
     </div>
 </body>
-</html>
+</html> -->
