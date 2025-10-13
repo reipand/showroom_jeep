@@ -9,6 +9,7 @@ $success_message = '';
 if ($_POST) {
     $full_name = trim($_POST['full_name']);
     $email = trim($_POST['email']);
+    $phone_number = trim($_POST['phone_number']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $captcha = $_POST['captcha'];
@@ -42,9 +43,9 @@ if ($_POST) {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             
             // Insert data ke database
-            $insert_query = "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)";
+            $insert_query = "INSERT INTO users (full_name, email, phone_number, password_hash, role) VALUES (?, ?, ?, ?, 'pelanggan')";
             $stmt = mysqli_prepare($conn, $insert_query);
-            mysqli_stmt_bind_param($stmt, "sss", $full_name, $email, $hashed_password);
+            mysqli_stmt_bind_param($stmt, "ssss", $full_name, $email, $phone_number, $hashed_password);
             
             if (mysqli_stmt_execute($stmt)) {
                 $success_message = "Registrasi berhasil! Silakan login.";
@@ -106,10 +107,8 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
             width: 80%;
             max-width: 500px;
             height: auto;
-            border: 3px solid #000;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+            }
 
         .right-section {
             flex: 1;
@@ -359,6 +358,11 @@ if (!isset($_SESSION['captcha']) || isset($_POST['full_name'])) {
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" name="email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone_number">Phone Number</label>
+                        <input type="tel" id="phone_number" name="phone_number" value="<?php echo isset($_POST['phone_number']) ? htmlspecialchars($_POST['phone_number']) : ''; ?>">
                     </div>
                     
                     <div class="form-group">
