@@ -413,7 +413,7 @@ if ($vehicles_result) {
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -440,15 +440,21 @@ if ($vehicles_result) {
                     </li>
                 </ul>
                 
-                <div class="d-flex">
+              <div class="d-flex">
                     <form class="d-flex me-3" method="get" action="shop.php">
                         <input name="q" class="form-control form-control-sm" type="search" placeholder="Search vehicles" aria-label="Search" style="min-width: 180px;">
                         <button class="btn btn-sm btn-outline-secondary ms-2" type="submit"><i class="fas fa-search"></i></button>
                     </form>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a class="nav-link" href="account.php">
-                            <i class="fas fa-user-circle"></i>
-                        </a>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <a class="nav-link" href="admin.php">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+                        <?php else: ?>
+                            <a class="nav-link" href="account.php">
+                                <i class="fas fa-user-circle"></i>
+                            </a>
+                        <?php endif; ?>
                     <?php else: ?>
                         <a class="nav-link" href="login.php">
                             <i class="fas fa-user-circle"></i>
